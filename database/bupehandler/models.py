@@ -33,7 +33,7 @@ class Sitecodes_samhsa_ftloc(models.Model):
 
 # Gave all Siterecs_ classes an oid (object id for ease of abstraction for backend) ## = Audit tables
 
-class Siterecs_samhsa_ftloc(models.Model): ## TODO: In all the Boolean fields, shouldn't we have blank=False, null=False (neither True)??
+class Siterecs_samhsa_ftloc(models.Model): ## In all the Boolean fields, blank cells will register as null, thus False (= accurate)
     oid = models.IntegerField(primary_key=True)
     ## site_id = models.ForeignKey('Sites_all', models.DO_NOTHING) ## we decided Jan 26th just to reference oid from every site Audit in sites_all Production table
     date_firstfind = models.DateField()
@@ -313,11 +313,11 @@ class Siterecs_dbhids_tad(models.Model): ## TODO (jkd): Update fields to match a
     ## site_id = models.ForeignKey('Sites_all', models.DO_NOTHING)  ## we decided Jan 26th just to reference oid from every site Audit in sites_all Production table
     name_listed = models.CharField(max_length=120)
     street_address = models.CharField(max_length=120)
-    loc_suppl = models.CharField(max_length=50)
+    address_suppl = models.CharField(max_length=50)
     zip5 = models.CharField(max_length=5)
     phone = models.CharField(max_length=20) # Format: ###-###-#### (with optional x####)
     mat_info = models.CharField(max_length=100) ## Current max = 50char, so 100 is just for flex
-    mat_bupe = models.BooleanField(blank=False) ## blank=False preferred: ok? (same for each BooleanField in this class)
+    mat_bupe = models.BooleanField(blank=False) ## TODO: Make sure data specifies 0 for False and 1 for True in all Boolean fields for this class
     mat_mtd = models.BooleanField(blank=False)
     mat_ntrex = models.BooleanField(blank=False)
     iop = models.BooleanField(blank=False)
@@ -344,9 +344,9 @@ class Siterecs_hfp_fqhc(models.Model): ## TODO
     name_short = models.CharField(max_length=50)
     name_system = models.CharField(max_length=120)
     name_site = models.CharField(max_length=120)
-    admin_office = models.BooleanField(blank=False) ## blank=False preferred: ok?
+    admin_office = models.BooleanField(blank=True) ## Corrected to avoid requiring entry
     street_address = models.CharField(max_length=120)
-    loc_suppl = models.CharField(max_length=50)
+    address_suppl = models.CharField(max_length=50)
     city = models.CharField(max_length=30)
     state_usa = models.CharField(max_length=30) ## Can replace with Enum to match above classes
     zip5 = models.CharField(max_length=5)
@@ -369,7 +369,7 @@ class Siterecs_other_srcs(models.Model): ## TODO (jkd): Clean up extraneous colu
     street_address = models.CharField(max_length=120)
     address_suppl = models.CharField(max_length=120)
     zip5 = models.CharField(max_length=5)
-    fqhc = models.BooleanField(blank=True) ## Change all BooleanFields for this table to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No) -- blank="Unclear"!!
+    fqhc = models.BooleanField(blank=True) ## Change all BooleanFields for this table to Enum with 3 options: "Yes", "Unclear", "No" -- blank="Unclear"!!
     mat_avail = models.BooleanField(blank=True)
     mat_bupe = models.BooleanField(blank=True)
     mat_mtd = models.BooleanField(blank=True)
@@ -404,7 +404,7 @@ class Sites_all(models.Model):
     dbhids_tad_id = models.ForeignKey('Siterecs_dbhids_tad', models.DO_NOTHING)
     hfp_fqhc_id = models.ForeignKey('Siterecs_hfp_fqhc', models.DO_NOTHING) ## Added
     other_srcs_id = models.ForeignKey('Siterecs_other_srcs', models.DO_NOTHING)
-    name_program = models.CharField(max_length=120)
+    name_system = models.CharField(max_length=120)
     name_site = models.CharField(max_length=120)
     url_site = models.URLField() ## Important addition: functions with address fields as composite primary key
     street_address = models.CharField(max_length=120)
@@ -412,16 +412,26 @@ class Sites_all(models.Model):
     zip5 = models.CharField(max_length=120)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    phone = models.CharField(max_length=12) ## Format: ###-###-#### (don't include extensions)
     ## TODO: Identify how to link relevant fields from Audit tables to Enum fields below!!
-    mat_avail = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
-    mat_bupe = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
-    mat_mtd = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
-    mat_ntrex = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
-    fqhc = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
-    ## primary_care = models...  ## TODO: Add as Enum with 3 options: TRUE, Unclear, FALSE (or Yes, Unclear, No)
+    mat_avail = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: "Yes", "Unclear", "No"
+    mat_bupe = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: "Yes", "Unclear", "No"
+    mat_mtd = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: "Yes", "Unclear", "No"
+    mat_ntrex = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: "Yes", "Unclear", "No"
+    fqhc = models.BooleanField(blank=True) ## TODO: Change to Enum with 3 options: "Yes", "Unclear", "No"
+    ## primary_care = models...  ## TODO: Add as Enum with 3 options: "Yes", "Unclear", "No"
+    pay_medicaid
+    pay_private_insur
+    pay_medicare
+    pay_military_insur
+    pay_assistance_avail
+    pay_self_cash
+    pay_otherstate_insur
+    pay_fed_funding
+    pay_none_accepted
+    ## TODO: Add fields for other key filters (services, clients, setting, etc.)!!
     archival_only = models.BooleanField(blank=True) ## Added to mark records not approved for Finder listings
     ## why_hidden = models... ## TODO: Add as Enum to identify reason(s) for non-approval (5 options to start: "Site closed", "Data needs review", "Not a practice site", "Record redundant", "Other")
-    ## TODO: Add other fields for key filters (age, insurance, services, etc.)!!
     date_update = models.DateTimeField(default=timezone.now)
 
     class Meta:
