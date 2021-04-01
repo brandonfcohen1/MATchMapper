@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 # from .serializers import ProviderSerializer
 # from .models import Provider
@@ -21,7 +21,54 @@ def sites_all_display(request):
     sites_all_objects = Sites_all.objects.all()
     print(sites_all_objects)
     sites_all_serializer = Sites_allSerializer(sites_all_objects, many=True)
-    return render(request,"bupehandler/sites_all.html", {"sites_all" : sites_all_serializer.data})
+    return render(request,"bupehandler/list_all.html", {"title": 'sites_all', "sites_all" : sites_all_serializer.data})
+
+@api_view(["GET", "POST", "DELETE"])
+@csrf_exempt
+@permission_classes([IsAuthenticated])
+def siterecs_samhsa_otp_display(request, filter_params=None, order_by_params=None):
+    order_param = ['name_program']
+    filter_params={'name_program': 'Achievement Through Counseling and Treatment (ACT 1)'}
+    siterecs_samhsa_otp_objects = Siterecs_samhsa_otp.objects.all()
+    if filter_params:
+        siterecs_samhsa_otp_objects = siterecs_samhsa_otp_objects.filter(**filter_params)
+    if order_by_params:
+        for order_param in order_by_params:
+            siterecs_samhsa_otp_objects = siterecs_samhsa_otp_objects.order_by(order_param)
+    # siterecs_samhsa_otp_objects = siterecs_samhsa_otp_objects.order_by('name_program')
+    print(siterecs_samhsa_otp_objects)
+    siterecs_samhsa_otp_serializer = Siterecs_samhsa_otpSerializer(siterecs_samhsa_otp_objects, many=True)
+    return render(request,"bupehandler/list_all.html", {"title": 'siterecs_samhsa_otp_display', "objects" : siterecs_samhsa_otp_serializer.data})
+
+@api_view(["GET", "POST", "DELETE"])
+@csrf_exempt
+def table(request, table_name, param_types, param_values): 
+    list_param_values = param_values.split("&") 
+    list_param_types = param_types.split("&")
+    filter_params = {}
+    for i in range(len(list_param_values)): 
+        filter_params[list_param_types[i]] = list_param_values[i]
+    table_dict = { 
+        "sitecodes_samhsa_ftloc": Sitecodes_samhsa_ftloc, 
+        "siterecs_samhsa_ftloc": Siterecs_samhsa_ftloc, 
+        "siterecs_samhsa_otp": Siterecs_samhsa_otp ,
+        "siterecs_dbhids_tad": Siterecs_dbhids_tad, 
+        "siterecs_other_srcs" : Siterecs_other_srcs , 
+        "sites_all" : Sites_all,
+    }
+    serializer_dict = { 
+        "sitecodes_samhsa_ftloc" : Sitecodes_samhsa_ftlocSerializer,
+        "siterecs_samhsa_ftloc" : Siterecs_samhsa_ftlocSerializer, 
+        "siterecs_samhsa_otp": Siterecs_samhsa_otpSerializer, 
+        "siterecs_dbhids_tad": Siterecs_dbhids_tadSerializer, 
+        "siterecs_other_srcs" : Siterecs_other_srcsSerializer, 
+        "sites_all" : Sites_allSerializer,
+    }
+    table_objects = table_dict[table_name].objects.all()
+    if filter_params:
+        table_objects = table_objects.filter(**filter_params)
+    table_serializer = serializer_dict[table_name](table_objects, many=True)
+    return render(request,"bupehandler/list_all.html", {"title": table_name, "objects" : table_serializer.data})
 
 
 # @api_view(["GET", "POST", "DELETE"])
