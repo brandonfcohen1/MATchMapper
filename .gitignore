@@ -10,3 +10,12 @@ MATchMapperEnv/
 .env
 Pipfile
 database/MATchMapper/__pycache__/
+.DS_Store
+coredata_scrapers/digest_pals_scraper.py
+.gitignore
+.vscode/settings.json
+maps/leaflet_map.ipynb
+maps/SampleDjangoAppData_2021q1 - sites_all_for-demo-map_rough-count=160.csv
+.vscode/settings.json
+.gitignore
+.vscode/settings.json
